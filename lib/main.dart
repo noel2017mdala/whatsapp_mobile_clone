@@ -10,8 +10,10 @@ Future<void> main() async {
   final SharedPreferences userToken = await SharedPreferences.getInstance();
   //gets user token from SharedPreferences instance
   var validateToken = userToken.getString("user_token");
+
   //check if the user token is expired
-  bool hasExpired = JwtDecoder.isExpired(validateToken!);
+  bool hasExpired =
+      validateToken == null ? true : JwtDecoder.isExpired(validateToken);
   runApp(MaterialApp(
     //route to different pages based on the token
     home: !hasExpired ? User_Tabs() : UserLogin(),

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:whatsap_mobile_clone/screens/userChart.dart';
 
 class Chat extends StatefulWidget {
   Chat({Key? key}) : super(key: key);
@@ -16,6 +17,7 @@ class _ChatState extends State<Chat> {
         child: Icon(Icons.chat),
         backgroundColor: Color(0xFF075E54),
       ),
+      body: UserChartList(),
     );
   }
 }

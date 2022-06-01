@@ -105,8 +105,14 @@ class _UserLoginState extends State<UserLogin> {
   TextEditingController _phoneNumberController = TextEditingController();
   TextEditingController _passwordController = TextEditingController();
   final storage = new FlutterSecureStorage();
+  bool loader = false;
+  bool msgState = false;
+  String msgText = "";
+  bool userContactState = false;
+  bool userPasswordState = false;
 
-  void userAuthenticator(String userContact, String userPassword) async {
+  void userAuthenticator(
+      String userContact, String userPassword, context) async {
     var dio = Dio();
     dio.options.headers['content-Type'] = 'application/json';
 
@@ -126,32 +132,77 @@ class _UserLoginState extends State<UserLogin> {
     //   print(err);
     // }
 
-    try {
-      var url = Uri.parse('http://192.168.43.93:8000/api/v1/users/login');
-      var response = await http
-          .post(url, body: {"password": userPassword, "email": userContact});
-      if (response.statusCode == 200) {
-        var jsonResponse = json.decode(response.body);
+    if (userContact.length == 0 && userPassword.length == 0) {
+      setState(() {
+        loader = false;
+        userContactState = true;
+        userPasswordState = true;
+      });
+    } else {
+      try {
+        setState(() {
+          loader = true;
+          userContactState = false;
+          userPasswordState = false;
+        });
 
-        var header = jsonResponse["loginDetails"]["headers"]["header"];
-        var payload = jsonResponse["loginDetails"]["headers"]["payload"];
-        var signature = jsonResponse["loginDetails"]["signature"];
+        var url = Uri.parse('http://192.168.43.93:8000/api/v1/users/login');
+        var response = await http
+            .post(url, body: {"password": userPassword, "email": userContact});
+        if (response.statusCode == 200) {
+          var jsonResponse = json.decode(response.body);
 
-        var token = "$header.$payload.$signature";
+          // print(jsonResponse['loginDetails']['userDetails']);
+          // setState(() {
+          //   loader = false;
+          // });
 
-        await storage.write(key: "user_token", value: token);
+          // var userData = await storage.read(key: 'user_data');
+          // print(userData);
+          // return;
+          var userData = jsonResponse['loginDetails']['userDetails'];
+          var header = jsonResponse["loginDetails"]["headers"]["header"];
+          var payload = jsonResponse["loginDetails"]["headers"]["payload"];
+          var signature = jsonResponse["loginDetails"]["signature"];
 
-        final SharedPreferences sharedPreferences =
-            await SharedPreferences.getInstance();
+          var token = "$header.$payload.$signature";
 
-        sharedPreferences.setString('user_token', token);
+          await storage.write(key: "user_token", value: token);
+          await storage.write(key: "user_data", value: jsonEncode(userData));
 
-        print(token);
-      } else {
-        print(response.statusCode);
+          final SharedPreferences sharedPreferences =
+              await SharedPreferences.getInstance();
+
+          sharedPreferences.setString('user_token', token);
+
+          Navigator.pushAndRemoveUntil(
+            context,
+            MaterialPageRoute(builder: (context) => User_Tabs()),
+            (Route<dynamic> route) => false,
+          );
+
+          setState(() {
+            loader = false;
+          });
+        } else {
+          var jsonResponse = json.decode(response.body);
+
+          setState(() {
+            loader = false;
+            msgState = true;
+            msgText = jsonResponse['Message'];
+          });
+
+          Future.delayed(Duration(seconds: 5), () {
+            setState(() {
+              loader = false;
+              msgState = false;
+            });
+          });
+        }
+      } catch (err) {
+        print(err);
       }
-    } catch (err) {
-      print(err);
     }
   }
 
@@ -169,19 +220,24 @@ class _UserLoginState extends State<UserLogin> {
       width: screenWidth * 0.6,
       child: ElevatedButton(
         onPressed: () {
-          userAuthenticator(userContact, userPassword);
-
-          // Navigator.push(
-          //     context, MaterialPageRoute(builder: (context) => User_Tabs()));
+          userAuthenticator(userContact, userPassword, context);
         },
         style: ElevatedButton.styleFrom(
           primary: Color.fromARGB(255, 255, 255, 255),
         ),
-        child: Text(
-          "Log in",
-          style:
-              TextStyle(color: Color(0xFF00BFA5), fontWeight: FontWeight.bold),
-        ),
+        child: loader
+            ? SizedBox(
+                child: CircularProgressIndicator(
+                  color: Color(0xFF00BFA5),
+                ),
+                height: 20.0,
+                width: 20.0,
+              )
+            : Text(
+                "Log in",
+                style: TextStyle(
+                    color: Color(0xFF00BFA5), fontWeight: FontWeight.bold),
+              ),
       ),
     );
   }
@@ -333,6 +389,16 @@ class _UserLoginState extends State<UserLogin> {
                                   )
                                 ],
                               ),
+                              userContactState
+                                  ? SizedBox(height: 20)
+                                  : Container(),
+                              userContactState
+                                  ? Text("Please enter you phone number",
+                                      style: TextStyle(
+                                          color: Colors.red,
+                                          fontSize: 20,
+                                          fontWeight: FontWeight.bold))
+                                  : Container(),
                               SizedBox(height: 20),
                               Column(
                                 crossAxisAlignment: CrossAxisAlignment.start,
@@ -376,14 +442,32 @@ class _UserLoginState extends State<UserLogin> {
                                             color: Colors.green,
                                           )),
                                     ),
-                                  )
+                                  ),
                                 ],
                               ),
+                              userPasswordState
+                                  ? SizedBox(height: 20)
+                                  : Container(),
+                              userPasswordState
+                                  ? Text("Please enter you password",
+                                      style: TextStyle(
+                                          color: Colors.red,
+                                          fontSize: 20,
+                                          fontWeight: FontWeight.bold))
+                                  : Container(),
                               SizedBox(height: 20),
                               userForgotPassword(),
                               SingInButton(context, _phoneNumberController.text,
                                   _passwordController.text),
-                              signUpButton(context)
+                              signUpButton(context),
+                              SizedBox(height: 20),
+                              msgState
+                                  ? Text(msgText,
+                                      style: TextStyle(
+                                          color: Colors.red,
+                                          fontSize: 20,
+                                          fontWeight: FontWeight.bold))
+                                  : Container()
                             ],
                           ),
                         ))
