@@ -1,4 +1,4 @@
-name: whatsap_mobile_clone
+name: demo_app
 description: A new Flutter project.
 
 # The following line prevents the package from being accidentally published to
@@ -34,29 +34,10 @@ dependencies:
   # The following adds the Cupertino Icons font to your application.
   # Use with the CupertinoIcons class for iOS style icons.
   cupertino_icons: ^1.0.2
-  dio: ^4.0.6
-  http: ^0.13.4
-  flutter_secure_storage: ^5.0.2
-  jwt_decoder: ^2.0.1
-  shared_preferences: ^2.0.15
-  fluttertoast: ^8.0.9
-  email_validator: ^2.0.1
 
 dev_dependencies:
   flutter_test:
     sdk: flutter
-
-  flutter_native_splash: ^0.2.8
-
-# run: flutter clean && flutter pub get && flutter pub run flutter_native_splash:create
-flutter_native_splash:
-  color: "#00BFA5"
-  image: assets/images/logo.png
-  color_dark: "#000000"
-  image_dark: assets/images/logo.png
-  android: true
-  ios: true
-
 
   # The "flutter_lints" package below contains a set of recommended lints to
   # encourage good coding practices. The lint set provided by the package is
@@ -75,9 +56,6 @@ flutter:
   # included with your application, so that you can use the icons in
   # the material Icons class.
   uses-material-design: true
-  assets:
-    - Logo.png
-    - logo.png
 
   # To add assets to your application, add an assets section, like this:
   # assets:

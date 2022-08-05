@@ -4,33 +4,23 @@ import 'package:jwt_decoder/jwt_decoder.dart';
 import 'package:whatsap_mobile_clone/api/users_api.dart';
 import 'package:whatsap_mobile_clone/model/users.dart';
 
-// class UserChartList extends StatefulWidget {
-//   UserChartList({Key? key}) : super(key: key);
+class userChart {
+  final String phonenumber;
+  final String dates;
+  final String transdetails;
+  final String description;
+  final String Amount;
+  final String Balance;
+  final int transid;
 
-//   @override
-//   State<UserChartList> createState() => _UserChartListState();
-// }
+  userChart(this.phonenumber, this.dates, this.transdetails, this.description,
+      this.Amount, this.Balance, this.transid);
 
-// class _UserChartListState extends State<UserChartList> {
-//   void getUserChat() async {
-//     try {
-//       var url = Uri.parse(
-//           'http://localhost:8000/api/v1/users/getUser/61b7336a571c140016f8577f');
-//       var response = await http.get(url, headers: {
-//         "access-token":
-//             "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOiI2MWI3MzM2YTU3MWMxNDAwMTZmODU3N2YiLCJpYXQiOjE2NTM0NjU5ODgsImV4cCI6MTY1NDA3MDc4OH0.9p9psiE_t3AfIj9QsJ8IuA1eGdEzm1s2bnV26hQ7BpE",
-//         "user-id": "61b7336a571c140016f8577f"
-//       });
-//     } catch (err) {
-//       print(err);
-//     }
-//   }
-
-//   @override
-//   Widget build(BuildContext context) {
-//     return Container();
-//   }
-// }
+  factory userChart.fromJson(Map<String, dynamic> json) {
+    return userChart(json["phonenumber"], json["dates"], json["transdetails"],
+        json["description"], json["Amount"], json["balance"], json["transid"]);
+  }
+}
 
 class UserChartList extends StatelessWidget {
   const UserChartList({Key? key}) : super(key: key);

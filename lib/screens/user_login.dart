@@ -17,90 +17,6 @@ class UserLogin extends StatefulWidget {
   State<UserLogin> createState() => _UserLoginState();
 }
 
-// Widget userMobile() {
-//   return Column(
-//     crossAxisAlignment: CrossAxisAlignment.start,
-//     children: [
-//       Text(
-//         "Phone Number",
-//         style: TextStyle(
-//             color: Colors.white, fontSize: 16, fontWeight: FontWeight.bold),
-//       ),
-//       SizedBox(
-//         height: 10,
-//       ),
-//       Container(
-//         alignment: Alignment.centerLeft,
-//         decoration: BoxDecoration(
-//             color: Colors.white,
-//             borderRadius: BorderRadius.circular(10),
-//             boxShadow: [
-//               BoxShadow(
-//                   color: Colors.black26, blurRadius: 6, offset: Offset(0, 2))
-//             ]),
-//         height: 60,
-//         child: TextField(
-//           keyboardType: TextInputType.number,
-//           style: TextStyle(color: Colors.black87),
-//           decoration: InputDecoration(
-//               border: InputBorder.none,
-//               contentPadding: EdgeInsets.only(top: 14),
-//               prefixIcon: Icon(
-//                 Icons.phone,
-//                 color: Colors.green,
-//               ),
-//               hintText: "Mobile Number",
-//               hintStyle: TextStyle(
-//                 color: Colors.green,
-//               )),
-//         ),
-//       )
-//     ],
-//   );
-// }
-
-// Widget userPassword() {
-//   return Column(
-//     crossAxisAlignment: CrossAxisAlignment.start,
-//     children: [
-//       Text(
-//         "Password",
-//         style: TextStyle(
-//             color: Colors.white, fontSize: 16, fontWeight: FontWeight.bold),
-//       ),
-//       SizedBox(
-//         height: 10,
-//       ),
-//       Container(
-//         alignment: Alignment.centerLeft,
-//         decoration: BoxDecoration(
-//             color: Colors.white,
-//             borderRadius: BorderRadius.circular(10),
-//             boxShadow: [
-//               BoxShadow(
-//                   color: Colors.black26, blurRadius: 6, offset: Offset(0, 2))
-//             ]),
-//         height: 60,
-//         child: TextField(
-//           obscureText: true,
-//           style: TextStyle(color: Colors.black87),
-//           decoration: InputDecoration(
-//               border: InputBorder.none,
-//               contentPadding: EdgeInsets.only(top: 14),
-//               prefixIcon: Icon(
-//                 Icons.lock,
-//                 color: Colors.green,
-//               ),
-//               hintText: "Password",
-//               hintStyle: TextStyle(
-//                 color: Colors.green,
-//               )),
-//         ),
-//       )
-//     ],
-//   );
-// }
-
 class _UserLoginState extends State<UserLogin> {
   TextEditingController _phoneNumberController = TextEditingController();
   TextEditingController _passwordController = TextEditingController();
@@ -116,27 +32,84 @@ class _UserLoginState extends State<UserLogin> {
     var dio = Dio();
     dio.options.headers['content-Type'] = 'application/json';
 
-    // print("user contact: $userContact  user password: $userPassword");
-    // try {
-    //   final response = await dio.post(
-    //       "http://192.168.43.93:8000/api/v1/users/login",
-    //       data: {"password": userPassword, "email": userContact});
-
-    //   print(response.statusCode);
-    //   if (response.statusCode == 200) {
-    //     print(response);
-    //   } else {
-    //     print("an error occurred");
-    //   }
-    // } catch (err) {
-    //   print(err);
-    // }
-
     if (userContact.length == 0 && userPassword.length == 0) {
       setState(() {
         loader = false;
         userContactState = true;
         userPasswordState = true;
+      });
+
+      Future.delayed(Duration(seconds: 5), () {
+        setState(() {
+          loader = false;
+          userContactState = false;
+          userPasswordState = false;
+        });
+      });
+    } else if (userContact.length == 0) {
+      setState(() {
+        loader = false;
+        userContactState = true;
+        // userPasswordState = true;
+      });
+      Future.delayed(Duration(seconds: 5), () {
+        setState(() {
+          loader = false;
+          userContactState = false;
+          userPasswordState = false;
+        });
+      });
+    } else if (userContact.length < 10) {
+      // setState(() {
+      //   loader = false;
+      //   userContactState = true;
+      //   // userPasswordState = true;
+      // });
+      // Future.delayed(Duration(seconds: 5), () {
+      //   setState(() {
+      //     loader = false;
+      //     userContactState = false;
+      //     userPasswordState = false;
+      //   });
+      // });
+
+      setState(() {
+        loader = false;
+        msgState = true;
+        msgText = "Please enter a valid contact number";
+      });
+
+      Future.delayed(Duration(seconds: 5), () {
+        setState(() {
+          loader = false;
+          msgState = false;
+        });
+      });
+    } else if (userPassword.length < 6) {
+      // setState(() {
+      //   loader = false;
+      //   userContactState = true;
+      //   userPasswordState = true;
+      // });
+      // Future.delayed(Duration(seconds: 5), () {
+      //   setState(() {
+      //     loader = false;
+      //     userContactState = false;
+      //     userPasswordState = false;
+      //   });
+      // });
+
+      setState(() {
+        loader = false;
+        msgState = true;
+        msgText = "Password must contain 6 or more characters";
+      });
+
+      Future.delayed(Duration(seconds: 5), () {
+        setState(() {
+          loader = false;
+          msgState = false;
+        });
       });
     } else {
       try {
@@ -152,14 +125,6 @@ class _UserLoginState extends State<UserLogin> {
         if (response.statusCode == 200) {
           var jsonResponse = json.decode(response.body);
 
-          // print(jsonResponse['loginDetails']['userDetails']);
-          // setState(() {
-          //   loader = false;
-          // });
-
-          // var userData = await storage.read(key: 'user_data');
-          // print(userData);
-          // return;
           var userData = jsonResponse['loginDetails']['userDetails'];
           var header = jsonResponse["loginDetails"]["headers"]["header"];
           var payload = jsonResponse["loginDetails"]["headers"]["payload"];
@@ -201,7 +166,20 @@ class _UserLoginState extends State<UserLogin> {
           });
         }
       } catch (err) {
-        print(err);
+        // print(err);
+
+        setState(() {
+          loader = false;
+          msgState = true;
+          msgText = "Failed to login please try again";
+        });
+
+        Future.delayed(Duration(seconds: 5), () {
+          setState(() {
+            loader = false;
+            msgState = false;
+          });
+        });
       }
     }
   }
@@ -219,9 +197,11 @@ class _UserLoginState extends State<UserLogin> {
       padding: EdgeInsets.symmetric(vertical: 30),
       width: screenWidth * 0.6,
       child: ElevatedButton(
-        onPressed: () {
-          userAuthenticator(userContact, userPassword, context);
-        },
+        onPressed: loader
+            ? null
+            : () {
+                userAuthenticator(userContact, userPassword, context);
+              },
         style: ElevatedButton.styleFrom(
           primary: Color.fromARGB(255, 255, 255, 255),
         ),
@@ -245,11 +225,11 @@ class _UserLoginState extends State<UserLogin> {
   Widget signUpButton(context) {
     return GestureDetector(
       onTap: () async {
-        var data = await checkToken();
+        // var data = await checkToken();
 
-        bool hasExpired = JwtDecoder.isExpired(data);
+        // bool hasExpired = JwtDecoder.isExpired(data);
 
-        print(hasExpired);
+        // print(hasExpired);
 
         Navigator.push(
           context,
@@ -396,7 +376,7 @@ class _UserLoginState extends State<UserLogin> {
                                   ? Text("Please enter you phone number",
                                       style: TextStyle(
                                           color: Colors.red,
-                                          fontSize: 20,
+                                          fontSize: 16,
                                           fontWeight: FontWeight.bold))
                                   : Container(),
                               SizedBox(height: 20),
@@ -452,7 +432,7 @@ class _UserLoginState extends State<UserLogin> {
                                   ? Text("Please enter you password",
                                       style: TextStyle(
                                           color: Colors.red,
-                                          fontSize: 20,
+                                          fontSize: 16,
                                           fontWeight: FontWeight.bold))
                                   : Container(),
                               SizedBox(height: 20),
@@ -465,7 +445,7 @@ class _UserLoginState extends State<UserLogin> {
                                   ? Text(msgText,
                                       style: TextStyle(
                                           color: Colors.red,
-                                          fontSize: 20,
+                                          fontSize: 16,
                                           fontWeight: FontWeight.bold))
                                   : Container()
                             ],
