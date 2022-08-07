@@ -10,16 +10,18 @@ class userChart {
   final String name;
   final String lastMassage;
   final String messageTime;
+  final String messageStatus;
 
-  userChart(this.profileImage, this.name, this.lastMassage, this.messageTime);
+  userChart(this.profileImage, this.name, this.lastMassage, this.messageTime,
+      this.messageStatus);
 
   factory userChart.fromJson(Map<String, dynamic> json) {
-    // print(json["userDetails"]);
     return userChart(
         json["userDetails"]["profileImage"],
         json['userDetails']["name"],
         json['userLastMessage']['messagesBody'],
-        json["userLastMessage"]["timeSent"]);
+        json["userLastMessage"]["timeSent"],
+        json["userLastMessage"]["messageStatus"]);
   }
 }
 
@@ -29,13 +31,6 @@ class Chat extends StatefulWidget {
   @override
   State<Chat> createState() => _ChatState();
 }
-
-/*
- headers: {
-        "access-token": generateToken(),
-        "user-id": getUserDAta()._id,
-      },
-*/
 
 class _ChatState extends State<Chat> {
   Future<List<userChart>> getUsers() async {
@@ -53,8 +48,6 @@ class _ChatState extends State<Chat> {
 
       if (response.statusCode == 200) {
         List users = jsonDecode(response.body);
-        // print(users);
-
         return users.map((e) => new userChart.fromJson(e)).toList();
       } else {
         throw Exception('Unexpected error occurred!');
@@ -69,41 +62,94 @@ class _ChatState extends State<Chat> {
     double screenWidth = MediaQuery.of(context).size.width;
     double screenHeight = MediaQuery.of(context).size.height;
     return Scaffold(
-      floatingActionButton: FloatingActionButton(
-        onPressed: () async {},
-        child: Icon(Icons.chat),
-        backgroundColor: Color(0xFF075E54),
-      ),
-      body: SingleChildScrollView(
-        scrollDirection: Axis.vertical,
-        child: SingleChildScrollView(
-          physics: AlwaysScrollableScrollPhysics(),
-          scrollDirection: Axis.horizontal,
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            crossAxisAlignment: CrossAxisAlignment.center,
-            children: [
-              FutureBuilder<List<userChart>>(
-                future: getUsers(),
-                builder: (context, snapshot) {
-                  if (snapshot.hasError || snapshot.data == null) {
-                    // print(snapshot.error);
-                    return Align(
-                      alignment: Alignment.topCenter,
-                      child: Center(
-                        child: CircularProgressIndicator(),
-                      ),
-                    );
-                  } else {
-                    // print(snapshot.data![1].name);
-                    return Text("Hello ${snapshot.data![0].name}");
-                  }
-                },
-              )
-            ],
-          ),
+        floatingActionButton: FloatingActionButton(
+          onPressed: () async {},
+          child: Icon(Icons.chat),
+          backgroundColor: Color(0xFF075E54),
         ),
-      ),
-    );
+        body: RefreshIndicator(
+          onRefresh: getUsers,
+          child: SingleChildScrollView(
+            scrollDirection: Axis.vertical,
+            child: SingleChildScrollView(
+                physics: AlwaysScrollableScrollPhysics(),
+                scrollDirection: Axis.vertical,
+                child: FutureBuilder<List<userChart>>(
+                  future: getUsers(),
+                  builder: (context, snapshot) {
+                    if (snapshot.hasError || snapshot.data == null) {
+                      return Align(
+                        child: Center(
+                          child: CircularProgressIndicator(),
+                        ),
+                      );
+                    } else {
+                      List<userChart>? list = snapshot.data;
+                      if (list!.length > 0) {
+                        // return Text("Hello ${snapshot.data![0].name}");
+
+                        return ListView.builder(
+                          scrollDirection: Axis.vertical,
+                          shrinkWrap: true,
+                          itemCount: list.length,
+                          itemBuilder: (BuildContext context, int index) {
+                            return InkWell(
+                              onTap: () {
+                                print(index);
+                              },
+                              child: Card(
+                                child: ListTile(
+                                    leading: CircleAvatar(
+                                      radius: 30,
+                                      backgroundImage: NetworkImage(
+                                          "https://node-whatsapp-backend.herokuapp.com/api/v1/users/getImage/${snapshot.data![index].profileImage}"),
+                                      backgroundColor: Colors.white,
+                                    ),
+                                    trailing:
+                                        Text(snapshot.data![index].messageTime),
+                                    title: Text(
+                                      snapshot.data![index].name,
+                                      style: TextStyle(
+                                          fontSize: 16,
+                                          fontWeight: FontWeight.bold),
+                                    ),
+                                    subtitle: Row(
+                                      children: [
+                                        snapshot.data![index].messageStatus ==
+                                                "read"
+                                            ? Icon(
+                                                Icons.done_all,
+                                                color: Colors.blue,
+                                              )
+                                            : snapshot.data![index]
+                                                        .messageStatus ==
+                                                    "sent"
+                                                ? Icon(
+                                                    Icons.done,
+                                                    color: Colors.grey,
+                                                  )
+                                                : Icon(Icons.done_all,
+                                                    color: Colors.grey),
+                                        SizedBox(width: 5),
+                                        Text(
+                                          snapshot.data![index].lastMassage,
+                                          style: TextStyle(
+                                            fontSize: 13,
+                                          ),
+                                        ),
+                                      ],
+                                    )),
+                              ),
+                            );
+                          },
+                        );
+                      } else {
+                        return Text("No charts found");
+                      }
+                    }
+                  },
+                )),
+          ),
+        ));
   }
 }
