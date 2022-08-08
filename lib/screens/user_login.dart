@@ -298,10 +298,10 @@ class _UserLoginState extends State<UserLogin> {
                                 begin: Alignment.topCenter,
                                 end: Alignment.bottomCenter,
                                 colors: [
-                              Color(0xFF00BFA5),
-                              Color(0xFF00BFA5),
-                              Color(0xFF00BFA5),
-                              Color(0xFF00BFA5),
+                              Color(0xFF075E54),
+                              Color(0xFF075E54),
+                              Color(0xFF075E54),
+                              Color(0xFF075E54),
                             ])),
                         child: SingleChildScrollView(
                           physics: AlwaysScrollableScrollPhysics(),

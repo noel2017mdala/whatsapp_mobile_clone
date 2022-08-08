@@ -1,9 +1,10 @@
 import 'dart:convert';
 
 import 'package:flutter/material.dart';
-import 'package:whatsap_mobile_clone/screens/userChart.dart';
+// import 'package:whatsap_mobile_clone/screens/userChart.dart';
 import 'package:http/http.dart' as http;
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
+import 'package:whatsap_mobile_clone/screens/Chat/userChat.dart';
 
 class userChart {
   final String profileImage;
@@ -11,9 +12,10 @@ class userChart {
   final String lastMassage;
   final String messageTime;
   final String messageStatus;
+  final List userLastSeen;
 
   userChart(this.profileImage, this.name, this.lastMassage, this.messageTime,
-      this.messageStatus);
+      this.messageStatus, this.userLastSeen);
 
   factory userChart.fromJson(Map<String, dynamic> json) {
     return userChart(
@@ -21,7 +23,8 @@ class userChart {
         json['userDetails']["name"],
         json['userLastMessage']['messagesBody'],
         json["userLastMessage"]["timeSent"],
-        json["userLastMessage"]["messageStatus"]);
+        json["userLastMessage"]["messageStatus"],
+        json['userDetails']["userActivity"]);
   }
 }
 
@@ -80,7 +83,11 @@ class _ChatState extends State<Chat> {
                     if (snapshot.hasError || snapshot.data == null) {
                       return Align(
                         child: Center(
-                          child: CircularProgressIndicator(),
+                          child: CircularProgressIndicator(
+                            backgroundColor: Colors.white,
+                            valueColor: AlwaysStoppedAnimation<Color>(
+                                Color(0xFF075E54)),
+                          ),
                         ),
                       );
                     } else {
@@ -95,15 +102,24 @@ class _ChatState extends State<Chat> {
                           itemBuilder: (BuildContext context, int index) {
                             return InkWell(
                               onTap: () {
-                                print(index);
+                                // print(snapshot.data![index]);
+                                Navigator.push(
+                                    context,
+                                    MaterialPageRoute(
+                                        builder: (context) => UserChart(
+                                              userData: snapshot.data![index],
+                                            )));
                               },
                               child: Card(
                                 child: ListTile(
-                                    leading: CircleAvatar(
-                                      radius: 30,
-                                      backgroundImage: NetworkImage(
-                                          "https://node-whatsapp-backend.herokuapp.com/api/v1/users/getImage/${snapshot.data![index].profileImage}"),
-                                      backgroundColor: Colors.white,
+                                    leading: InkWell(
+                                      onTap: () {},
+                                      child: CircleAvatar(
+                                        radius: 30,
+                                        backgroundImage: NetworkImage(
+                                            "https://node-whatsapp-backend.herokuapp.com/api/v1/users/getImage/${snapshot.data![index].profileImage}"),
+                                        backgroundColor: Colors.white,
+                                      ),
                                     ),
                                     trailing:
                                         Text(snapshot.data![index].messageTime),
@@ -119,6 +135,7 @@ class _ChatState extends State<Chat> {
                                                 "read"
                                             ? Icon(
                                                 Icons.done_all,
+                                                size: 15,
                                                 color: Colors.blue,
                                               )
                                             : snapshot.data![index]
