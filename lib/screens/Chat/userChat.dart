@@ -1,7 +1,12 @@
+import 'dart:convert';
+
 import 'package:flutter/material.dart';
 import 'package:emoji_picker_flutter/emoji_picker_flutter.dart';
 import 'package:whatsap_mobile_clone/screens/Chat/receiverMessage.dart';
 import 'package:whatsap_mobile_clone/screens/Chat/senderMessage.dart';
+import 'package:flutter_secure_storage/flutter_secure_storage.dart';
+// import 'package:socket_io_client/socket_io_client.dart' as IO;
+import '../../socket/socketconnection.dart';
 
 class UserChart extends StatefulWidget {
   var userData;
@@ -15,10 +20,12 @@ class _UserChartState extends State<UserChart> {
   TextEditingController userMessage = TextEditingController();
   bool emojiState = false;
   FocusNode focusNode = FocusNode();
+  // late IO.Socket socket;
 
   @override
   void initState() {
     super.initState();
+
     focusNode.addListener(() {
       if (focusNode.hasFocus) {
         setState(() {
@@ -214,7 +221,18 @@ class _UserChartState extends State<UserChart> {
                                       Icons.mic,
                                       color: Colors.white,
                                     ),
-                                    onPressed: () {
+                                    onPressed: () async {
+                                      // final storage =
+                                      //     new FlutterSecureStorage();
+                                      // var userData =
+                                      //     await storage.read(key: "user_data");
+                                      // var userToken =
+                                      //     await storage.read(key: "user_token");
+                                      // var userId = jsonDecode(userData!)["_id"];
+                                      // var socket = SocketConn.connect(userId);
+
+                                      //  socket.emit("request-demo");
+
                                       // print(userMessage.text);
                                     }),
                               ))
