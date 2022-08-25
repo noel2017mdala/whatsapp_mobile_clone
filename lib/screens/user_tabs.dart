@@ -4,15 +4,46 @@ import 'package:whatsap_mobile_clone/Tabs/camera.dart';
 import 'package:whatsap_mobile_clone/Tabs/chat.dart';
 import 'package:whatsap_mobile_clone/Tabs/groups.dart';
 import 'package:whatsap_mobile_clone/Tabs/status.dart';
+import 'package:socket_io_client/socket_io_client.dart' as IO;
 
 class User_Tabs extends StatefulWidget {
-  User_Tabs({Key? key}) : super(key: key);
+  var userData;
+
+  User_Tabs({Key? key, required this.userData}) : super(key: key);
 
   @override
   State<User_Tabs> createState() => _User_TabsState();
 }
 
 class _User_TabsState extends State<User_Tabs> {
+  late IO.Socket socket;
+
+  socketConn() {
+    socket.connect();
+    socket.onConnect((data) => print("Connection made successfully"));
+    socket.onConnectError(
+        (data) => print("Failed to connect to the server ${data}"));
+    socket.onDisconnect((data) => print("Socket connection disconnected"));
+  }
+
+  @override
+  void initState() {
+    // TODO: implement initState
+    super.initState();
+    socket = IO.io("http://192.168.43.93:8000/", <String, dynamic>{
+      "transports": ["websocket"],
+      "autoConnect": false,
+      "query": "mobileId=${widget.userData}",
+    });
+
+    socketConn();
+  }
+
+  _sendMessage(msg) {
+    socket.emit(
+        "request-demo", {"name": "Abel", "lastName": "Mdala", "msg": msg});
+  }
+
   @override
   Widget build(BuildContext context) {
     return DefaultTabController(
@@ -88,7 +119,12 @@ class _User_TabsState extends State<User_Tabs> {
           ),
         ),
         body: TabBarView(
-          children: [Chat(), Groups(), Status(), Calls()],
+          children: [
+            Chat(sendMessage: _sendMessage),
+            Groups(),
+            Status(),
+            Calls()
+          ],
         ),
       ),
     );

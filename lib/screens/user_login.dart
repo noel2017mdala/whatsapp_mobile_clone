@@ -132,6 +132,9 @@ class _UserLoginState extends State<UserLogin> {
 
           var token = "$header.$payload.$signature";
 
+          // print(userData['_id']);
+          // return;
+
           await storage.write(key: "user_token", value: token);
           await storage.write(key: "user_data", value: jsonEncode(userData));
 
@@ -142,7 +145,10 @@ class _UserLoginState extends State<UserLogin> {
 
           Navigator.pushAndRemoveUntil(
             context,
-            MaterialPageRoute(builder: (context) => User_Tabs()),
+            MaterialPageRoute(
+                builder: (context) => User_Tabs(
+                      userData: userData['_id'],
+                    )),
             (Route<dynamic> route) => false,
           );
 
@@ -298,10 +304,10 @@ class _UserLoginState extends State<UserLogin> {
                                 begin: Alignment.topCenter,
                                 end: Alignment.bottomCenter,
                                 colors: [
-                              Color(0xFF075E54),
-                              Color(0xFF075E54),
-                              Color(0xFF075E54),
-                              Color(0xFF075E54),
+                              Color(0xFF00BFA5),
+                              Color(0xFF00BFA5),
+                              Color(0xFF00BFA5),
+                              Color(0xFF00BFA5),
                             ])),
                         child: SingleChildScrollView(
                           physics: AlwaysScrollableScrollPhysics(),

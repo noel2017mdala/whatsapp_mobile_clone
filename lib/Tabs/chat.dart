@@ -29,7 +29,8 @@ class userChart {
 }
 
 class Chat extends StatefulWidget {
-  Chat({Key? key}) : super(key: key);
+  var sendMessage;
+  Chat({Key? key, required this.sendMessage}) : super(key: key);
 
   @override
   State<Chat> createState() => _ChatState();
@@ -41,7 +42,6 @@ class _ChatState extends State<Chat> {
     var userData = await storage.read(key: "user_data");
     var userToken = await storage.read(key: "user_token");
     var userId = jsonDecode(userData!)["_id"];
-
     if (userId != null) {
       var url =
           Uri.parse("http://192.168.43.93:8000/api/v1/users/getUser/${userId}");
@@ -101,14 +101,19 @@ class _ChatState extends State<Chat> {
                           itemCount: list.length,
                           itemBuilder: (BuildContext context, int index) {
                             return InkWell(
-                              onTap: () {
+                              onTap: () async {
+                                final storage = new FlutterSecureStorage();
+                                var userData =
+                                    await storage.read(key: "user_data");
+                                var userId = jsonDecode(userData!)["_id"];
                                 // print(snapshot.data![index]);
                                 Navigator.push(
                                     context,
                                     MaterialPageRoute(
                                         builder: (context) => UserChart(
-                                              userData: snapshot.data![index],
-                                            )));
+                                            userData: snapshot.data![index],
+                                            userSendMessage: widget.sendMessage,
+                                            userId: userId)));
                               },
                               child: Card(
                                 child: ListTile(
@@ -161,7 +166,7 @@ class _ChatState extends State<Chat> {
                           },
                         );
                       } else {
-                        return Text("No charts found");
+                        return Text("No chat found");
                       }
                     }
                   },
