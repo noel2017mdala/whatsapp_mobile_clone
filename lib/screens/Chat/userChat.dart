@@ -53,16 +53,17 @@ class _UserChartState extends State<UserChart> {
   TextEditingController userMessage = TextEditingController();
   bool emojiState = false;
   FocusNode focusNode = FocusNode();
+  bool sendButton = false;
+  List<userMessages> messages = [];
+
   // late IO.Socket socket;
 
-  Future<List<userMessages>> getUserMessages() async {
+  loadUserChart() async {
     final storage = new FlutterSecureStorage();
     var userData = await storage.read(key: "user_data");
     var userToken = await storage.read(key: "user_token");
     var userId = jsonDecode(userData!)["_id"];
     var receiverUrl = widget.userData.userLastSeen[0]['userId'];
-
-    // print(receiverUrl);
 
     if (userId != null && receiverUrl != null) {
       var url = Uri.parse(
@@ -73,8 +74,20 @@ class _UserChartState extends State<UserChart> {
 
       if (response.statusCode == 200) {
         var userData = jsonDecode(response.body);
-        List messagesData = userData['message'];
-        return messagesData.map((e) => new userMessages.fromJson(e)).toList();
+
+        var messagesData = userData['message'];
+
+        for (var data in messagesData) {
+          messages.add(new userMessages(
+              data["messageStatus"],
+              data["dateSent"],
+              data["timeSent"],
+              data["from"],
+              data["to"],
+              data["messagesBody"]));
+        }
+
+        setState(() {});
       } else {
         throw Exception('Unexpected error occurred!');
       }
@@ -87,6 +100,7 @@ class _UserChartState extends State<UserChart> {
   @override
   void initState() {
     super.initState();
+    loadUserChart();
 
     focusNode.addListener(() {
       if (focusNode.hasFocus) {
@@ -95,6 +109,26 @@ class _UserChartState extends State<UserChart> {
         });
       }
     });
+  }
+
+  Widget userUi() {
+    return ListView.builder(
+      scrollDirection: Axis.vertical,
+      shrinkWrap: true,
+      itemCount: messages.length,
+      itemBuilder: (BuildContext context, int index) {
+        print("");
+        return messages[index].from != widget.userId
+            ? ReceiverMsg(
+                msg: messages[index].messagesBody,
+                msgTime: messages[index].timeSent,
+              )
+            : SenderMsg(
+                msg: messages[index].messagesBody,
+                msgTime: messages[index].timeSent,
+              );
+      },
+    );
   }
 
   @override
@@ -204,51 +238,15 @@ class _UserChartState extends State<UserChart> {
                 children: [
                   Container(
                       height: MediaQuery.of(context).size.height - 145,
-                      child: RefreshIndicator(
-                        onRefresh: getUserMessages,
-                        child: FutureBuilder<List<userMessages>>(
-                          future: getUserMessages(),
-                          builder: (context, snapshot) {
-                            if (snapshot.hasError || snapshot.data == null) {
-                              print(snapshot.error);
-                              return Align(
-                                child: Center(
-                                  child: CircularProgressIndicator(
-                                    backgroundColor: Colors.white,
-                                    valueColor: AlwaysStoppedAnimation<Color>(
-                                        Color(0xFF075E54)),
-                                  ),
-                                ),
-                              );
-                            } else {
-                              List<userMessages>? list = snapshot.data;
-
-                              return ListView.builder(
-                                  scrollDirection: Axis.vertical,
-                                  shrinkWrap: true,
-                                  itemCount: list!.length,
-                                  itemBuilder:
-                                      (BuildContext context, int index) {
-                                    return snapshot.data![index].from ==
-                                            widget.userId
-                                        ? ReceiverMsg(
-                                            msg: snapshot
-                                                .data![index].messagesBody,
-                                            msgTime:
-                                                snapshot.data![index].timeSent,
-                                          )
-                                        : SenderMsg(
-                                            msg: snapshot
-                                                .data![index].messagesBody,
-                                            // msgTime:
-                                            //     snapshot.data![index].timeSent,
-                                            msgTime:
-                                                snapshot.data![index].timeSent);
-                                  });
-                            }
-                          },
-                        ),
-                      )),
+                      child: messages.length == 0
+                          ? Center(
+                              child: CircularProgressIndicator(
+                                backgroundColor: Colors.white,
+                                valueColor: AlwaysStoppedAnimation<Color>(
+                                    Color(0xFF075E54)),
+                              ),
+                            )
+                          : userUi()),
                   Align(
                     alignment: Alignment.bottomCenter,
                     child: Column(
@@ -275,6 +273,17 @@ class _UserChartState extends State<UserChart> {
                                       controller: userMessage,
                                       maxLines: 100,
                                       minLines: 1,
+                                      onChanged: (value) {
+                                        if (value.length > 0) {
+                                          setState(() {
+                                            sendButton = true;
+                                          });
+                                        } else if (value.length <= 0) {
+                                          setState(() {
+                                            sendButton = false;
+                                          });
+                                        }
+                                      },
                                       decoration: InputDecoration(
                                           border: InputBorder.none,
                                           hintText: "Message",
@@ -315,7 +324,7 @@ class _UserChartState extends State<UserChart> {
                                   radius: 25,
                                   child: IconButton(
                                       icon: Icon(
-                                        Icons.mic,
+                                        sendButton ? Icons.send : Icons.mic,
                                         color: Colors.white,
                                       ),
                                       onPressed: () async {
@@ -332,7 +341,11 @@ class _UserChartState extends State<UserChart> {
 
                                         // print(userMessage.text);
                                         // print(widget.userData);
-                                        widget.userSendMessage('Hello');
+                                        print(messages);
+                                        widget
+                                            .userSendMessage(userMessage.text);
+
+                                        userMessage.clear();
                                       }),
                                 ))
                           ],

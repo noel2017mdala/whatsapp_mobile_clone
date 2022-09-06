@@ -24,6 +24,7 @@ class _User_TabsState extends State<User_Tabs> {
     socket.onConnectError(
         (data) => print("Failed to connect to the server ${data}"));
     socket.onDisconnect((data) => print("Socket connection disconnected"));
+    socket.on("re-fresh-contact", (data) => print(data));
   }
 
   @override
