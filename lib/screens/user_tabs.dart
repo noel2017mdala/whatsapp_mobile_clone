@@ -24,7 +24,10 @@ class _User_TabsState extends State<User_Tabs> {
     socket.onConnectError(
         (data) => print("Failed to connect to the server ${data}"));
     socket.onDisconnect((data) => print("Socket connection disconnected"));
-    socket.on("re-fresh-contact", (data) => print(data));
+    // socket.on("re-fresh-contact", (data) => print(data));
+    socket.on("receive-message", (data) => print("Hello there"));
+    socket.on("demo", (data) => print("Hello"));
+    socket.on("demoBroadcast", (data) => print("here"));
   }
 
   @override
@@ -40,9 +43,11 @@ class _User_TabsState extends State<User_Tabs> {
     socketConn();
   }
 
-  _sendMessage(msg) {
-    socket.emit(
-        "request-demo", {"name": "Abel", "lastName": "Mdala", "msg": msg});
+  _sendMessage(msgData) {
+    // socket.emit(
+    //     "request-demo", {"name": "Abel", "lastName": "Mdala", "msg": msgData});
+
+    socket.emit("message-sent", msgData);
   }
 
   @override
@@ -121,7 +126,7 @@ class _User_TabsState extends State<User_Tabs> {
         ),
         body: TabBarView(
           children: [
-            Chat(sendMessage: _sendMessage),
+            Chat(sendMessage: _sendMessage, socketConnection: socket),
             Groups(),
             Status(),
             Calls()

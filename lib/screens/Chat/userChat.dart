@@ -38,11 +38,13 @@ class UserChart extends StatefulWidget {
   var userData;
   var userSendMessage;
   var userId;
+  var socket;
   UserChart(
       {Key? key,
       required this.userData,
       required this.userSendMessage,
-      required this.userId})
+      required this.userId,
+      required this.socket})
       : super(key: key);
 
   @override
@@ -97,6 +99,45 @@ class _UserChartState extends State<UserChart> {
     }
   }
 
+  getUserLastMessage() async {
+    final storage = new FlutterSecureStorage();
+    var userData = await storage.read(key: "user_data");
+    var userToken = await storage.read(key: "user_token");
+    var userId = jsonDecode(userData!)["_id"];
+    var receiverUrl = widget.userData.userLastSeen[0]['userId'];
+
+    if (userId != null && receiverUrl != null) {
+      var url = Uri.parse(
+          "http://192.168.43.93:8000/api/v1/chat/getAllMessages/${userId}/${receiverUrl}");
+
+      var response = await http.get(url,
+          headers: {"access-token": userToken.toString(), "user-id": userId});
+
+      if (response.statusCode == 200) {
+        var userData = jsonDecode(response.body);
+
+        var messagesData = userData['message'];
+
+        var userMessage = messagesData[messagesData.length - 1];
+
+        setState(() {
+          messages.add(new userMessages(
+              userMessage["messageStatus"],
+              userMessage["dateSent"],
+              userMessage["timeSent"],
+              userMessage["from"],
+              userMessage["to"],
+              userMessage["messagesBody"]));
+        });
+      } else {
+        throw Exception('Unexpected error occurred!');
+      }
+    } else {
+      print("Error here");
+      throw Exception('Unexpected error occurred!');
+    }
+  }
+
   @override
   void initState() {
     super.initState();
@@ -117,7 +158,6 @@ class _UserChartState extends State<UserChart> {
       shrinkWrap: true,
       itemCount: messages.length,
       itemBuilder: (BuildContext context, int index) {
-        print("");
         return messages[index].from != widget.userId
             ? ReceiverMsg(
                 msg: messages[index].messagesBody,
@@ -328,24 +368,56 @@ class _UserChartState extends State<UserChart> {
                                         color: Colors.white,
                                       ),
                                       onPressed: () async {
-                                        // final storage =
-                                        //     new FlutterSecureStorage();
-                                        // var userData =
-                                        //     await storage.read(key: "user_data");
-                                        // var userToken =
-                                        //     await storage.read(key: "user_token");
-                                        // var userId = jsonDecode(userData!)["_id"];
-                                        // var socket = SocketConn.connect(userId);
+                                        final storage =
+                                            new FlutterSecureStorage();
+                                        var userData = await storage.read(
+                                            key: "user_data");
+                                        var userToken = await storage.read(
+                                            key: "user_token");
+                                        var userId =
+                                            jsonDecode(userData!)["_id"];
+                                        var receiverUrl = widget
+                                            .userData.userLastSeen[0]['userId'];
 
-                                        //  socket.emit("request-demo");
+                                        var userSessionData =
+                                            jsonDecode(userData);
 
-                                        // print(userMessage.text);
-                                        // print(widget.userData);
-                                        print(messages);
-                                        widget
-                                            .userSendMessage(userMessage.text);
+                                        var messageContent = {
+                                          "from": userId,
+                                          "to": receiverUrl,
+                                          "messagesBody": userMessage.text,
+                                          "data": {
+                                            "userData": userSessionData,
+                                            "userId": receiverUrl
+                                          }
+                                        };
+
+                                        // widget.socket.on(
+                                        //     "receive-message",
+                                        //     (message, messageData) =>
+                                        //         print(message));
+
+                                        // widget.socket.on("demoBroadcast",
+                                        //     () => print("wawa2"));
+
+                                        // widget.socket.on("re-fresh-contact",
+                                        //     () => print("wawa3"));
+
+                                        // widget.socket.on("re-fresh-contact",
+                                        //     (data) => print("mojo"));
+
+                                        // print(messageContent);
+                                        widget.userSendMessage(messageContent);
 
                                         userMessage.clear();
+
+                                        widget.socket.on("demo", (message) {
+                                          print(message);
+                                          getUserLastMessage();
+                                        });
+
+                                        widget.socket.on("demoBroadcast",
+                                            (data) => print("demoBroadcast"));
                                       }),
                                 ))
                           ],

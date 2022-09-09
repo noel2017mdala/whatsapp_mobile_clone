@@ -30,7 +30,9 @@ class userChart {
 
 class Chat extends StatefulWidget {
   var sendMessage;
-  Chat({Key? key, required this.sendMessage}) : super(key: key);
+  var socketConnection;
+  Chat({Key? key, required this.sendMessage, required this.socketConnection})
+      : super(key: key);
 
   @override
   State<Chat> createState() => _ChatState();
@@ -113,6 +115,7 @@ class _ChatState extends State<Chat> {
                                         builder: (context) => UserChart(
                                             userData: snapshot.data![index],
                                             userSendMessage: widget.sendMessage,
+                                            socket: widget.socketConnection,
                                             userId: userId)));
                               },
                               child: Card(
