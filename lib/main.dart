@@ -21,9 +21,17 @@ Future<void> main() async {
   final storage = new FlutterSecureStorage();
   var userData = await storage.read(key: "user_data");
   // var userToken = await storage.read(key: "user_token");
-  var userId = jsonDecode(userData!)["_id"];
-  runApp(MaterialApp(
-    //route to different pages based on the token
-    home: !hasExpired ? User_Tabs(userData: userId) : UserLogin(),
-  ));
+  if (userData != null) {
+    var userId = jsonDecode(userData)["_id"];
+    runApp(MaterialApp(
+      //route to different pages based on the token
+      home: !hasExpired ? User_Tabs(userData: userId) : UserLogin(),
+    ));
+  } else {
+    runApp(MaterialApp(
+      //route to different pages based on the token
+      home: UserLogin(),
+    ));
+  }
+  ;
 }

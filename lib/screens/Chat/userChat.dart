@@ -411,13 +411,14 @@ class _UserChartState extends State<UserChart> {
 
                                         userMessage.clear();
 
-                                        widget.socket.on("demo", (message) {
-                                          print(message);
-                                          getUserLastMessage();
-                                        });
+                                        widget.socket.on("demo",
+                                            (data) => getUserLastMessage());
 
                                         widget.socket.on("demoBroadcast",
-                                            (data) => print("demoBroadcast"));
+                                            (data) => getUserLastMessage());
+
+                                        widget.socket.on("receive-message",
+                                            (data) => print("WaWA"));
                                       }),
                                 ))
                           ],
